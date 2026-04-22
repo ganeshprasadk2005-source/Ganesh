@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Search Algorithm Explanations</title>
+    <style>
+        @media print {
+            body {
+                margin: 0;
+                padding: 20px;
+            }
+            .no-print {
+                display: none;
+            }
+            @page {
+                margin: 2cm;
+            }
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+            color: #333;
+        }
+        h1 {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #764ba2;
+            margin-top: 30px;
+            border-left: 5px solid #764ba2;
+            padding-left: 15px;
+        }
+        h3 {
+            color: #555;
+            margin-top: 25px;
+        }
+        .algorithm-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid #667eea;
+        }
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            margin: 15px 0;
+        }
+        .code-block code {
+            background: transparent;
+            padding: 0;
+        }
+        .location {
+            background: #e7f3ff;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid #667eea;
+        }
+        .key-points {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border-left: 4px solid #ffc107;
+        }
+        .key-points ul {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        .no-print {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .btn {
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #764ba2;
+        }
+        .analogy {
+            background: #d4edda;
+            padding: 12px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid #28a745;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print">
+        <h2>📄 Print to PDF Instructions</h2>
+        <p><strong>To create a PDF:</strong></p>
+        <ol>
+            <li>Click the "Print" button below, or</li>
+            <li>Press <kbd>Ctrl+P</kbd> (Windows/Linux) or <kbd>Cmd+P</kbd> (Mac)</li>
+            <li>Choose "Save as PDF" as the destination</li>
+            <li>Click "Save"</li>
+        </ol>
+        <button class="btn" onclick="window.print()">🖨️ Print to PDF</button>
+    </div>
+
+    <h1>🔍 AI Search Algorithm Visualizer - Algorithm Explanations</h1>
+    
+    <p><strong>Document Purpose:</strong> This document explains how each search algorithm works in simple terms, including their code implementations and locations in the visualizer.</p>
+
+    <h2>Table of Contents</h2>
+    <ol>
+        <li><a href="#bfs">Breadth-First Search (BFS)</a></li>
+        <li><a href="#dfs">Depth-First Search (DFS)</a></li>
+        <li><a href="#ucs">Uniform Cost Search (UCS)</a></li>
+        <li><a href="#greedy">Greedy Best-First Search</a></li>
+        <li><a href="#astar">A* Search</a></li>
+        <li><a href="#comparison">Comparison Table</a></li>
+    </ol>
+
+    <hr>
+
+    <div class="algorithm-section" id="bfs">
+        <h2>1. Breadth-First Search (BFS)</h2>
+        
+        <h3>Simple Explanation:</h3>
+        <p>Imagine you're exploring a maze level by level, like peeling an onion. BFS explores all nodes at the same distance from the start before moving to nodes further away. It's like water spreading evenly in all directions.</p>
+
+        <div class="analogy">
+            <strong>Real-world analogy:</strong> Like exploring a building floor by floor, checking all rooms on the 1st floor before going to the 2nd floor.
+        </div>
+
+        <h3>How it works:</h3>
+        <ul>
+            <li>Uses a <strong>queue</strong> (First In, First Out - like people waiting in line)</li>
+            <li>Explores nodes level by level (all nodes 1 step away, then 2 steps, then 3, etc.)</li>
+            <li>Guarantees finding the shortest path (in terms of number of steps)</li>
+            <li>Complete and optimal for unweighted graphs</li>
+        </ul>
+
+        <div class="location">
+            <strong>📍 Location in code:</strong> Lines <strong>1209-1251</strong> in <code>search-visualizer.html</code>
+        </div>
+
+        <h3>Algorithm Code:</h3>
+        <div class="code-block">
+<code>async function BFS(graph, start, goal) {
+    const queue = [[start, [start]]];  // Queue: [node, path]
+    const visited = new Set();          // Track visited nodes
+    const steps = [];                   // Record steps for visualization
+
+    while (queue.length > 0) {
+        // Remove from front of queue (FIFO)
+        const [current, path] = queue.shift();
+
+        if (visited.has(current)) continue;
+        visited.add(current);
+
+        // Check if goal reached
+        if (current === goal) {
+            return steps;
+        }
+
+        // Add all unvisited neighbors to the BACK of queue
+        const neighbors = Object.keys(graph[current] || {});
+        for (const neighbor of neighbors) {
+            if (!visited.has(neighbor)) {
+                queue.push([neighbor, [...path, neighbor]]);
+            }
+        }
+    }
+    
+    return steps;  // Goal not found
+}</code>
+        </div>
+
+        <div class="key-points">
+            <strong>Key Points:</strong>
+            <ul>
+                <li><code>queue.shift()</code> - removes from front (FIFO)</li>
+                <li>Explores nodes in order of distance from start</li>
+                <li>Shortest path guaranteed (in steps, not cost)</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="algorithm-section" id="dfs">
+        <h2>2. Depth-First Search (DFS)</h2>
+        
+        <h3>Simple Explanation:</h3>
+        <p>DFS explores as far as possible along each branch before backtracking. It's like following one path all the way to the end, then going back to try other paths.</p>
+
+        <div class="analogy">
+            <strong>Real-world analogy:</strong> Like following a maze by always turning right and keeping your hand on the wall - you'll explore everything eventually but might take a long path.
+        </div>
+
+        <h3>How it works:</h3>
+        <ul>
+            <li>Uses a <strong>stack</strong> (Last In, First Out - like a stack of plates)</li>
+            <li>Dives deep into the graph before exploring siblings</li>
+            <li>Doesn't guarantee shortest path</li>
+            <li>Uses less memory than BFS in some cases</li>
+            <li>May get stuck in infinite loops without proper checks</li>
+        </ul>
+
+        <div class="location">
+            <strong>📍 Location in code:</strong> Lines <strong>1253-1295</strong> in <code>search-visualizer.html</code>
+        </div>
+
+        <h3>Algorithm Code:</h3>
+        <div class="code-block">
+<code>async function DFS(graph, start, goal) {
+    const stack = [[start, [start]]];  // Stack: [node, path]
+    const visited = new Set();          // Track visited nodes
+    const steps = [];                   // Record steps for visualization
+
+    while (stack.length > 0) {
+        // Remove from top of stack (LIFO)
+        const [current, path] = stack.pop();
+
+        if (visited.has(current)) continue;
+        visited.add(current);
+
+        // Check if goal reached
+        if (current === goal) {
+            return steps;
+        }
+
+        // Add all unvisited neighbors to the TOP of stack
+        // Reversed so first neighbor is explored last (maintains order)
+        const neighbors = Object.keys(graph[current] || {}).reverse();
+        for (const neighbor of neighbors) {
+            if (!visited.has(neighbor)) {
+                stack.push([neighbor, [...path, neighbor]]);
+            }
+        }
+    }
+    
+    return steps;  // Goal not found
+}</code>
+        </div>
+
+        <div class="key-points">
+            <strong>Key Points:</strong>
+            <ul>
+                <li><code>stack.pop()</code> - removes from top (LIFO)</li>
+                <li>Explores one branch completely before trying others</li>
+                <li>May not find shortest path</li>
+                <li>Can use recursion as an alternative</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="algorithm-section" id="ucs">
+        <h2>3. Uniform Cost Search (UCS)</h2>
+        
+        <h3>Simple Explanation:</h3>
+        <p>UCS finds the path with the lowest total cost, not just the fewest steps. It explores nodes in order of their total cost from the start, always picking the cheapest next option.</p>
+
+        <div class="analogy">
+            <strong>Real-world analogy:</strong> Like finding the cheapest route on a map where roads have different toll costs - you always take the route with lowest total cost.
+        </div>
+
+        <h3>How it works:</h3>
+        <ul>
+            <li>Uses a <strong>priority queue</strong> (always processes lowest cost first)</li>
+            <li>Considers edge costs/weights</li>
+            <li>Guarantees finding the optimal (lowest cost) path</li>
+            <li>Like Dijkstra's algorithm without a destination heuristic</li>
+            <li>Complete and optimal for weighted graphs</li>
+        </ul>
+
+        <div class="location">
+            <strong>📍 Location in code:</strong> Lines <strong>1297-1341</strong> in <code>search-visualizer.html</code>
+        </div>
+
+        <h3>Algorithm Code:</h3>
+        <div class="code-block">
+<code>async function UCS(graph, start, goal) {
+    // Priority queue: [cost, node, path]
+    const queue = [[0, start, [start]]];
+    const visited = new Set();
+    const steps = [];
+
+    while (queue.length > 0) {
+        // Sort by cost (lowest first)
+        queue.sort((a, b) => a[0] - b[0]);
+        
+        // Remove node with lowest cost
+        const [cost, current, path] = queue.shift();
+
+        if (visited.has(current)) continue;
+        visited.add(current);
+
+        // Check if goal reached
+        if (current === goal) {
+            return steps;
+        }
+
+        // Add neighbors with their cumulative costs
+        const neighbors = Object.keys(graph[current] || {});
+        for (const neighbor of neighbors) {
+            if (!visited.has(neighbor)) {
+                const edgeCost = graph[current][neighbor];
+                const newCost = cost + edgeCost;
+                queue.push([newCost, neighbor, [...path, neighbor]]);
+            }
+        }
+    }
+    
+    return steps;  // Goal not found
+}</code>
+        </div>
+
+        <div class="key-points">
+            <strong>Key Points:</strong>
+            <ul>
+                <li><code>queue.sort()</code> - orders by cost before selection</li>
+                <li>Tracks cumulative cost from start (g-cost)</li>
+                <li>Always expands lowest-cost node first</li>
+                <li>Optimal path guaranteed (in cost, not steps)</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="algorithm-section" id="greedy">
+        <h2>4. Greedy Best-First Search</h2>
+        
+        <h3>Simple Explanation:</h3>
+        <p>Greedy search uses heuristics (educated guesses) to always choose the node that "looks" closest to the goal, even if it's not actually the cheapest path overall. It's like always heading toward a visible destination.</p>
+
+        <div class="analogy">
+            <strong>Real-world analogy:</strong> Like navigating to a visible mountain - you always walk toward it (heuristic), but this might not be the best route if there's a better path that goes around obstacles.
+        </div>
+
+        <h3>How it works:</h3>
+        <ul>
+            <li>Uses a <strong>priority queue</strong> based on heuristic values (h)</li>
+            <li>Always picks node with lowest heuristic estimate</li>
+            <li>Fast but may not find optimal path</li>
+            <li>Requires heuristic function (estimated distance to goal)</li>
+            <li>Can get stuck in local minima</li>
+        </ul>
+
+        <div class="location">
+            <strong>📍 Location in code:</strong> Lines <strong>1343-1386</strong> in <code>search-visualizer.html</code>
+        </div>
+
+        <h3>Algorithm Code:</h3>
+        <div class="code-block">
+<code>async function Greedy(graph, start, goal, heuristics) {
+    // Priority queue: [heuristic, node, path]
+    const queue = [[heuristics[start] || 0, start, [start]]];
+    const visited = new Set();
+    const steps = [];
+
+    while (queue.length > 0) {
+        // Sort by heuristic (lowest first)
+        queue.sort((a, b) => a[0] - b[0]);
+        
+        // Remove node with lowest heuristic
+        const [h, current, path] = queue.shift();
+
+        if (visited.has(current)) continue;
+        visited.add(current);
+
+        // Check if goal reached
+        if (current === goal) {
+            return steps;
+        }
+
+        // Add neighbors with their heuristic values
+        const neighbors = Object.keys(graph[current] || {});
+        for (const neighbor of neighbors) {
+            if (!visited.has(neighbor)) {
+                const hValue = heuristics[neighbor] || 0;
+                queue.push([hValue, neighbor, [...path, neighbor]]);
+            }
+        }
+    }
+    
+    return steps;  // Goal not found
+}</code>
+        </div>
+
+        <div class="key-points">
+            <strong>Key Points:</strong>
+            <ul>
+                <li>Uses only heuristic (h) for decisions</li>
+                <li>Doesn't consider actual path cost (g)</li>
+                <li>Fast but not guaranteed optimal</li>
+                <li>Requires good heuristic function</li>
+                <li>Example: Manhattan distance, Euclidean distance</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="algorithm-section" id="astar">
+        <h2>5. A* Search</h2>
+        
+        <h3>Simple Explanation:</h3>
+        <p>A* is the best of both worlds! It combines the actual path cost (like UCS) with a heuristic estimate (like Greedy) to find the optimal path efficiently. It uses <strong>f = g + h</strong>, where <strong>g</strong> is real cost and <strong>h</strong> is estimated remaining cost.</p>
+
+        <div class="analogy">
+            <strong>Real-world analogy:</strong> Like GPS navigation that considers both:
+            <ul>
+                <li>How far you've traveled (g - actual cost)</li>
+                <li>How far you still need to go (h - estimated distance)</li>
+                <li>Always choosing the route with lowest total estimated time</li>
+            </ul>
+        </div>
+
+        <h3>How it works:</h3>
+        <ul>
+            <li>Uses a <strong>priority queue</strong> based on <strong>f = g + h</strong>
+                <ul>
+                    <li><strong>g</strong> = actual cost from start (like UCS)</li>
+                    <li><strong>h</strong> = estimated cost to goal (heuristic, like Greedy)</li>
+                    <li><strong>f</strong> = total estimated cost (g + h)</li>
+                </ul>
+            </li>
+            <li>Guarantees optimal path if heuristic is admissible (never overestimates)</li>
+            <li>More efficient than UCS (explores fewer nodes)</li>
+            <li>More accurate than Greedy (considers actual costs)</li>
+        </ul>
+
+        <div class="location">
+            <strong>📍 Location in code:</strong> Lines <strong>1388-1436</strong> in <code>search-visualizer.html</code>
+        </div>
+
+        <h3>Algorithm Code:</h3>
+        <div class="code-block">
+<code>async function AStar(graph, start, goal, heuristics) {
+    // Priority queue: [f-value, g-cost, node, path]
+    const queue = [[heuristics[start] || 0, 0, start, [start]]];
+    const visited = new Set();
+    const steps = [];
+
+    while (queue.length > 0) {
+        // Sort by f-value (lowest first)
+        queue.sort((a, b) => a[0] - b[0]);
+        
+        // Remove node with lowest f-value
+        const [f, g, current, path] = queue.shift();
+
+        if (visited.has(current)) continue;
+        visited.add(current);
+
+        // Check if goal reached
+        if (current === goal) {
+            return steps;
+        }
+
+        // Add neighbors with their f, g, and h values
+        const neighbors = Object.keys(graph[current] || {});
+        for (const neighbor of neighbors) {
+            if (!visited.has(neighbor)) {
+                const edgeCost = graph[current][neighbor];
+                const newG = g + edgeCost;              // Actual cost from start
+                const h = heuristics[neighbor] || 0;    // Estimated cost to goal
+                const newF = newG + h;                  // Total estimated cost
+                queue.push([newF, newG, neighbor, [...path, neighbor]]);
+            }
+        }
+    }
+    
+    return steps;  // Goal not found
+}</code>
+        </div>
+
+        <div class="key-points">
+            <strong>Key Points:</strong>
+            <ul>
+                <li><strong>f = g + h</strong> (actual cost + estimated remaining)</li>
+                <li>Optimal if heuristic is admissible (h ≤ actual cost to goal)</li>
+                <li>Most efficient optimal algorithm</li>
+                <li>Balances exploration vs exploitation</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="algorithm-section" id="comparison">
+        <h2>Comparison Table</h2>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Algorithm</th>
+                    <th>Data Structure</th>
+                    <th>Optimal?</th>
+                    <th>Complete?</th>
+                    <th>Uses Costs?</th>
+                    <th>Uses Heuristics?</th>
+                    <th>Best For</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>BFS</strong></td>
+                    <td>Queue (FIFO)</td>
+                    <td>Yes*</td>
+                    <td>Yes</td>
+                    <td>No</td>
+                    <td>No</td>
+                    <td>Unweighted graphs, shortest path in steps</td>
+                </tr>
+                <tr>
+                    <td><strong>DFS</strong></td>
+                    <td>Stack (LIFO)</td>
+                    <td>No</td>
+                    <td>Yes**</td>
+                    <td>No</td>
+                    <td>No</td>
+                    <td>Memory-constrained, solution existence</td>
+                </tr>
+                <tr>
+                    <td><strong>UCS</strong></td>
+                    <td>Priority Queue</td>
+                    <td>Yes</td>
+                    <td>Yes</td>
+                    <td>Yes</td>
+                    <td>No</td>
+                    <td>Weighted graphs, optimal cost</td>
+                </tr>
+                <tr>
+                    <td><strong>Greedy</strong></td>
+                    <td>Priority Queue</td>
+                    <td>No</td>
+                    <td>No***</td>
+                    <td>No</td>
+                    <td>Yes</td>
+                    <td>Fast approximation, good heuristic available</td>
+                </tr>
+                <tr>
+                    <td><strong>A*</strong></td>
+                    <td>Priority Queue</td>
+                    <td>Yes****</td>
+                    <td>Yes</td>
+                    <td>Yes</td>
+                    <td>Yes</td>
+                    <td>Best balance: optimal + efficient</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p><small>
+            * Optimal in terms of number of steps (not cost)<br>
+            ** Complete for finite graphs<br>
+            *** May not terminate with cycles<br>
+            **** Optimal if heuristic is admissible
+        </small></p>
+    </div>
+
+    <div class="algorithm-section">
+        <h2>Algorithm Selection Guide</h2>
+        
+        <h3>Use BFS when:</h3>
+        <ul>
+            <li>You need shortest path in steps (unweighted graph)</li>
+            <li>Graph is small and shallow</li>
+            <li>You want to explore level by level</li>
+        </ul>
+
+        <h3>Use DFS when:</h3>
+        <ul>
+            <li>Memory is limited</li>
+            <li>You just need to find ANY path (not optimal)</li>
+            <li>Graph is very deep</li>
+        </ul>
+
+        <h3>Use UCS when:</h3>
+        <ul>
+            <li>Edges have different costs/weights</li>
+            <li>You need optimal cost path</li>
+            <li>No heuristic available</li>
+        </ul>
+
+        <h3>Use Greedy when:</h3>
+        <ul>
+            <li>You have a good heuristic</li>
+            <li>Speed is more important than optimality</li>
+            <li>Approximate solution is acceptable</li>
+        </ul>
+
+        <h3>Use A* when:</h3>
+        <ul>
+            <li>You have both edge costs AND a good heuristic</li>
+            <li>You want optimal solution efficiently</li>
+            <li>Best general-purpose search algorithm</li>
+        </ul>
+    </div>
+
+    <div class="algorithm-section">
+        <h2>Key Terminology</h2>
+        <ul>
+            <li><strong>Frontier/Open Set:</strong> Nodes discovered but not yet explored</li>
+            <li><strong>Visited/Closed Set:</strong> Nodes that have been fully explored</li>
+            <li><strong>Heuristic (h):</strong> Estimated cost from a node to the goal</li>
+            <li><strong>Path Cost (g):</strong> Actual cost from start to current node</li>
+            <li><strong>F-value (f):</strong> Total estimated cost (g + h)</li>
+            <li><strong>Optimal:</strong> Guarantees best solution</li>
+            <li><strong>Complete:</strong> Guarantees finding solution if it exists</li>
+        </ul>
+    </div>
+
+    <div class="algorithm-section">
+        <h2>Summary</h2>
+        <p>All these algorithms search a graph to find a path from start to goal, but they differ in:</p>
+        <ol>
+            <li><strong>Order of exploration</strong> (queue vs stack vs priority)</li>
+            <li><strong>What they consider</strong> (steps, costs, heuristics)</li>
+            <li><strong>What they guarantee</strong> (optimality, completeness)</li>
+        </ol>
+        <p>The visualizer shows exactly how each algorithm explores the graph step-by-step, helping you understand the differences visually!</p>
+    </div>
+
+    <hr>
+    <p style="text-align: center; color: #666; margin-top: 40px;">
+        <small>
+            <em>Document generated for AI Search Algorithm Visualizer</em><br>
+            Code location: <code>search-visualizer.html</code><br>
+            Implementation lines: 1209-1436
+        </small>
+    </p>
+</body>
+</html>
+
+
+
+

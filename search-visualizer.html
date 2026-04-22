@@ -1,0 +1,1825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Search Algorithm Visualizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: rgb(223, 219, 219);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            min-height: 700px;
+        }
+
+        .sidebar {
+            width: 350px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            max-height: calc(100vh - 200px);
+        }
+
+        .graph-container {
+            flex: 1;
+            display: flex;
+            gap: 15px;
+            flex-direction: row;
+        }
+
+        .graph-area {
+            flex: 2;
+            background: #fff;
+            border-radius: 15px;
+            border: 3px solid #e0e0e0;
+            position: relative;
+            overflow: hidden;
+            background-image: 
+                linear-gradient(rgba(200,200,200,0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(200,200,200,0.1) 1px, transparent 1px);
+            background-size: 30px 30px;
+            min-height: 600px;
+        }
+
+        .explanation-sidebar {
+            flex: 1;
+            min-width: 320px;
+            max-width: 400px;
+            background: #ffffff;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            border: 2px solid #e0e0e0;
+        }
+
+        #edgeLayer,
+        #labelLayer,
+        #nodeLayer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        #edgeLayer {
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        #labelLayer {
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        #nodeLayer {
+            z-index: 10;
+        }
+
+        .section {
+            margin-bottom: 25px;
+        }
+
+        .section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 5px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .control-buttons .btn {
+            flex: 1;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .info-box strong {
+            color: #667eea;
+        }
+
+        /* Graph Node Styles */
+        .node {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: white;
+            border: 4px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 10;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            pointer-events: auto;
+        }
+
+        .node:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+
+        .node.start {
+            background: #00e676;
+            border-color: #00c853;
+            color: white;
+            animation: pulse 2s infinite;
+        }
+
+        .node.goal {
+            background: #ff5252;
+            border-color: #d32f2f;
+            color: white;
+            animation: pulse 2s infinite;
+        }
+
+        .node.visited {
+            background: #42a5f5;
+            border-color: #1976d2;
+            color: white;
+        }
+
+        .node.frontier {
+            background: #ffeb3b;
+            border-color: #fbc02d;
+            color: #333;
+        }
+
+        .node.path {
+            background: #ab47bc;
+            border-color: #7b1fa2;
+            color: white;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Edge Styles */
+        .edge-line {
+            stroke: #666;
+            stroke-width: 3px;
+            transition: stroke 0.3s ease, stroke-width 0.3s ease;
+        }
+
+        .edge-line.path {
+            stroke: #ab47bc;
+            stroke-width: 4px;
+            filter: drop-shadow(0 0 6px rgba(171, 71, 188, 0.6));
+        }
+
+        .edge-line.edge-preview {
+            stroke: #ff9800;
+            stroke-dasharray: 6 4;
+        }
+
+        .edge-label {
+            position: absolute;
+            background: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #333;
+            border: 1px solid #ddd;
+            z-index: 8;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+        }
+
+        .status-bar {
+            background: #f8f9fa;
+            padding: 15px 25px;
+            border-top: 2px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-info {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .step-counter {
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .legend {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 2px solid #333;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .mode-indicator {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .mode-add-node {
+            background: #28a745;
+            color: white;
+        }
+
+        .mode-add-edge {
+            background: #ff9800;
+            color: white;
+        }
+
+        .mode-move {
+            background: #2196f3;
+            color: white;
+        }
+
+        .toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .toggle input {
+            width: 18px;
+            height: 18px;
+        }
+
+        .explanation-sidebar h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 5px;
+        }
+
+        .explanation-sidebar h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 5px;
+        }
+
+        .explanation-panel {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            flex: 1;
+            font-size: 14px;
+            line-height: 1.7;
+            color: #333;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+            overflow-y: auto;
+            min-height: 300px;
+            margin-bottom: 15px;
+        }
+
+        .explanation-panel h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .explanation-panel ul {
+            margin: 10px 0;
+            padding-left: 25px;
+            list-style-type: disc;
+        }
+
+        .explanation-panel li {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .explanation-panel .step-info {
+            background: #e7f3ff;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .explanation-panel.empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-style: italic;
+        }
+
+        .replay-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .replay-controls .btn {
+            flex: 1;
+            padding: 10px;
+            font-size: 13px;
+        }
+
+        .step-history {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #666;
+            padding: 8px;
+            background: #f0f0f0;
+            border-radius: 6px;
+        }
+
+        .step-navigation {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .step-navigation .btn {
+            flex: 1;
+            padding: 8px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 AI Search Algorithm Visualizer</h1>
+            <p>Visualize Informed and Uninformed Search Algorithms with Interactive Graph Building</p>
+        </div>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="section">
+                    <h3>Mode</h3>
+                    <select id="mode">
+                        <option value="add-node">Add Node</option>
+                        <option value="add-edge">Add Edge</option>
+                        <option value="move">Move Node</option>
+                        <option value="set-heuristic">Set Heuristic</option>
+                    </select>
+                    <button class="btn btn-secondary" onclick="clearGraph()">Clear Graph</button>
+                </div>
+
+                <div class="section" id="heuristicInputSection" style="display: none;">
+                    <h3>Set Heuristic Value</h3>
+                    <div class="input-group">
+                        <label>Selected Node:</label>
+                        <input type="text" id="selectedNode" readonly style="background: #e9ecef;">
+                    </div>
+                    <div class="input-group">
+                        <label>Heuristic Value:</label>
+                        <input type="number" id="heuristicValueInput" placeholder="Enter value" min="0" step="0.1">
+                    </div>
+                    <button class="btn btn-success" onclick="setHeuristicForNode()">Set Heuristic</button>
+                    <button class="btn btn-secondary" onclick="viewAllHeuristics()" style="margin-top: 5px;">View All</button>
+                </div>
+
+                <div class="section">
+                    <h3>Graph Input</h3>
+                    <div class="input-group">
+                        <label>Graph (JSON format):</label>
+                        <textarea id="graphInput" placeholder='{"A": {"B": 5, "C": 3}, "B": {"D": 2}, "C": {"D": 4}, "D": {}}'></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label>Heuristics (optional):</label>
+                        <textarea id="heuristicInput" placeholder='{"A": 10, "B": 5, "C": 8, "D": 0}'></textarea>
+                    </div>
+                    <button class="btn btn-success" onclick="loadGraph()">Load Graph</button>
+                </div>
+
+                <div class="section">
+                    <h3>Search Configuration</h3>
+                    <div class="input-group">
+                        <label>Start Node:</label>
+                        <input type="text" id="startNode" placeholder="A">
+                    </div>
+                    <div class="input-group">
+                        <label>Goal Node:</label>
+                        <input type="text" id="goalNode" placeholder="D">
+                    </div>
+                    <div class="input-group">
+                        <label>Algorithm:</label>
+                        <select id="algorithm">
+                            <optgroup label="Uninformed Search">
+                                <option value="bfs">Breadth-First Search (BFS)</option>
+                                <option value="dfs">Depth-First Search (DFS)</option>
+                                <option value="ucs">Uniform Cost Search (UCS)</option>
+                            </optgroup>
+                            <optgroup label="Informed Search">
+                                <option value="greedy">Greedy Best-First Search</option>
+                                <option value="astar">A* Search</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div class="control-buttons">
+                        <button class="btn btn-primary" onclick="startVisualization()">▶ Start</button>
+                        <button class="btn btn-secondary" onclick="pauseVisualization()">⏸ Pause</button>
+                        <button class="btn btn-secondary" onclick="stepVisualization()">⏭ Step</button>
+                        <button class="btn btn-danger" onclick="resetVisualization()">↺ Reset</button>
+                    </div>
+                    <div class="input-group">
+                        <label>Animation Speed (ms):</label>
+                        <input type="range" id="speed" min="100" max="2000" value="800" step="100">
+                        <span id="speedValue">800ms</span>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>Legend</h3>
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #00e676; border-color: #00c853;"></div>
+                            <span>Start</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #ff5252; border-color: #d32f2f;"></div>
+                            <span>Goal</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #ffeb3b; border-color: #fbc02d;"></div>
+                            <span>Frontier</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #42a5f5; border-color: #1976d2;"></div>
+                            <span>Visited</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #ab47bc; border-color: #7b1fa2;"></div>
+                            <span>Path</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <strong>Instructions:</strong><br>
+                    1. Choose a mode (Add Node/Edge/Move/Set Heuristic)<br>
+                    2. Click on canvas to add nodes<br>
+                    3. Click and drag from one node to another to draw an edge<br>
+                    4. Set heuristics for nodes in "Set Heuristic" mode<br>
+                    5. Set start/goal nodes and algorithm<br>
+                    6. Click Start to visualize!
+                </div>
+            </div>
+
+            <div class="graph-container">
+                <div class="graph-area" id="graphArea">
+                    <svg id="edgeLayer" width="100%" height="100%"></svg>
+                    <div id="labelLayer"></div>
+                    <div id="nodeLayer"></div>
+                </div>
+
+                <div class="explanation-sidebar">
+                    <h3>Step Explanation</h3>
+                    <div id="explanationPanel" class="explanation-panel empty">
+                        Start a visualization to see step-by-step explanations here.
+                    </div>
+                    <div class="step-history" id="stepHistory">
+                        Step: 0 / 0
+                    </div>
+                    <div class="step-navigation">
+                        <button class="btn btn-secondary" onclick="replayToStep(-1)" id="prevStepBtn" disabled>◀ Previous</button>
+                        <button class="btn btn-secondary" onclick="replayToStep(1)" id="nextStepBtn" disabled>Next ▶</button>
+                    </div>
+                    <div class="replay-controls">
+                        <button class="btn btn-primary" onclick="replayFromStart()" id="replayBtn" disabled>↺ Replay</button>
+                        <button class="btn btn-secondary" onclick="replayToStep(0)">⏮ Reset</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-info" id="status">Ready to visualize</div>
+            <div class="step-counter" id="stepCounter">Step: 0</div>
+        </div>
+    </div>
+
+    <script>
+        // Graph data structure
+        let graph = {};
+        let heuristics = {};
+        let nodes = {}; // {id: {x, y, element}}
+        let edges = []; // [{from, to, cost, line, label}]
+        let nodeCounter = 0;
+        let startNode = null;
+        let goalNode = null;
+        let animationSteps = [];
+        let currentStep = 0;
+        let isPaused = false;
+        let isRunning = false;
+        let dragNode = null;
+        let edgeDrawing = null;
+        let explanationEnabled = true;
+        let lastExplanation = 'Toggle the explanations to see why each node is chosen during search.';
+
+        const graphArea = document.getElementById('graphArea');
+        const edgeLayer = document.getElementById('edgeLayer');
+        const labelLayer = document.getElementById('labelLayer');
+        const nodeLayer = document.getElementById('nodeLayer');
+        const modeSelect = document.getElementById('mode');
+        const speedSlider = document.getElementById('speed');
+        const speedValue = document.getElementById('speedValue');
+        const explanationPanel = document.getElementById('explanationPanel');
+        const stepHistory = document.getElementById('stepHistory');
+        const algorithmNames = {
+            bfs: 'Breadth-First Search',
+            dfs: 'Depth-First Search',
+            ucs: 'Uniform Cost Search',
+            greedy: 'Greedy Best-First Search',
+            astar: 'A* Search'
+        };
+        let savedVisualizationState = null;
+
+        speedSlider.addEventListener('input', (e) => {
+            speedValue.textContent = e.target.value + 'ms';
+        });
+
+        // Handle mode changes for heuristic setting
+        modeSelect.addEventListener('change', (e) => {
+            const heuristicSection = document.getElementById('heuristicInputSection');
+            if (e.target.value === 'set-heuristic') {
+                heuristicSection.style.display = 'block';
+                updateStatus('Click on a node to set its heuristic value');
+            } else {
+                heuristicSection.style.display = 'none';
+                document.getElementById('selectedNode').value = '';
+                document.getElementById('heuristicValueInput').value = '';
+                updateStatus();
+            }
+        });
+
+        // Node click handler for heuristic mode
+        document.addEventListener('click', (e) => {
+            if (modeSelect.value === 'set-heuristic') {
+                const nodeElement = e.target.closest('.node');
+                if (nodeElement) {
+                    const nodeId = nodeElement.textContent.trim();
+                    if (nodes[nodeId]) {
+                        document.getElementById('selectedNode').value = nodeId;
+                        document.getElementById('heuristicValueInput').value = heuristics[nodeId] || '';
+                        document.getElementById('heuristicValueInput').focus();
+                    }
+                }
+            }
+        });
+
+        // Graph area click handler
+        graphArea.addEventListener('click', (e) => {
+            const isCanvasClick = e.target === graphArea || e.target === nodeLayer || e.target === edgeLayer || e.target === labelLayer;
+            if (isCanvasClick && modeSelect.value === 'add-node') {
+                addNode(e.offsetX, e.offsetY);
+            }
+        });
+
+        // Add node function
+        function addNode(x, y, id = null) {
+            if (!id) {
+                id = String.fromCharCode(65 + nodeCounter % 26) + (Math.floor(nodeCounter / 26) || '');
+                nodeCounter++;
+            }
+
+            const node = document.createElement('div');
+            node.className = 'node';
+            node.textContent = id;
+            node.id = 'node-' + id;
+            node.style.left = (x - 30) + 'px';
+            node.style.top = (y - 30) + 'px';
+
+            node.addEventListener('mousedown', (e) => {
+                if (modeSelect.value === 'move') {
+                    const current = nodes[id] || {x, y};
+                    dragNode = {id, startX: e.clientX, startY: e.clientY, nodeX: current.x, nodeY: current.y};
+                } else if (modeSelect.value === 'add-edge') {
+                    e.preventDefault();
+                    beginEdgeDrawing(id, e);
+                }
+            });
+
+            node.addEventListener('mouseup', (e) => {
+                if (modeSelect.value === 'add-edge' && edgeDrawing) {
+                    e.stopPropagation();
+                    finishEdgeDrawing(id);
+                }
+            });
+
+            nodeLayer.appendChild(node);
+            nodes[id] = {x, y, element: node};
+            if (!graph[id]) graph[id] = {};
+
+            updateStatus();
+        }
+
+        // Add edge function
+        function addEdge(from, to, cost = 1, skipPrompt = false) {
+            if (from === to) return;
+            if (!graph[from]) graph[from] = {};
+            if (!graph[to]) graph[to] = {};
+            
+            const existingEdge = edges.find(e => e.from === from && e.to === to);
+            if (existingEdge) return;
+
+            let edgeCost = cost;
+            if (!skipPrompt) {
+                const costStr = prompt('Enter edge cost:', cost);
+                if (costStr === null) {
+                    updateStatus('Edge creation cancelled');
+                    return;
+                }
+                edgeCost = parseFloat(costStr);
+                if (Number.isNaN(edgeCost)) edgeCost = 1;
+            }
+
+            graph[from][to] = edgeCost;
+
+            drawEdge(from, to, edgeCost);
+            updateStatus();
+        }
+
+        // Draw edge
+        function drawEdge(from, to, cost) {
+            const fromNode = nodes[from];
+            const toNode = nodes[to];
+            if (!fromNode || !toNode) return;
+
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.classList.add('edge-line');
+            edgeLayer.appendChild(line);
+
+            const label = document.createElement('div');
+            label.className = 'edge-label';
+            label.textContent = cost;
+            labelLayer.appendChild(label);
+
+            const edge = {from, to, cost, line, label};
+            edges.push(edge);
+            updateEdge(edge);
+        }
+
+        // Mouse move handler for dragging
+        document.addEventListener('mousemove', (e) => {
+            if (dragNode) {
+                const dx = e.clientX - dragNode.startX;
+                const dy = e.clientY - dragNode.startY;
+                const newX = dragNode.nodeX + dx;
+                const newY = dragNode.nodeY + dy;
+
+                nodes[dragNode.id].x = newX;
+                nodes[dragNode.id].y = newY;
+                nodes[dragNode.id].element.style.left = (newX - 30) + 'px';
+                nodes[dragNode.id].element.style.top = (newY - 30) + 'px';
+
+                // Update edges
+                edges.forEach(edge => {
+                    if (edge.from === dragNode.id || edge.to === dragNode.id) {
+                        updateEdge(edge);
+                    }
+                });
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            dragNode = null;
+        });
+
+        // Update edge position
+        function updateEdge(edge) {
+            const fromNode = nodes[edge.from];
+            const toNode = nodes[edge.to];
+            if (!fromNode || !toNode) return;
+
+            const x1 = fromNode.x;
+            const y1 = fromNode.y;
+            const x2 = toNode.x;
+            const y2 = toNode.y;
+
+            edge.line.setAttribute('x1', x1);
+            edge.line.setAttribute('y1', y1);
+            edge.line.setAttribute('x2', x2);
+            edge.line.setAttribute('y2', y2);
+
+            const midX = (x1 + x2) / 2;
+            const midY = (y1 + y2) / 2;
+            edge.label.style.left = midX + 'px';
+            edge.label.style.top = midY + 'px';
+        }
+
+        function beginEdgeDrawing(id, event) {
+            const source = nodes[id];
+            if (!source) return;
+            if (edgeDrawing) cleanupEdgeDrawing();
+
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.classList.add('edge-line', 'edge-preview');
+            line.setAttribute('x1', source.x);
+            line.setAttribute('y1', source.y);
+            line.setAttribute('x2', source.x);
+            line.setAttribute('y2', source.y);
+            edgeLayer.appendChild(line);
+
+            edgeDrawing = {from: id, line};
+            document.addEventListener('mousemove', handleEdgeDrawingMove);
+            document.addEventListener('mouseup', cancelEdgeDrawing);
+            handleEdgeDrawingMove(event);
+            updateStatus();
+        }
+
+        function handleEdgeDrawingMove(event) {
+            if (!edgeDrawing) return;
+            const rect = graphArea.getBoundingClientRect();
+            const x2 = event.clientX - rect.left;
+            const y2 = event.clientY - rect.top;
+            edgeDrawing.line.setAttribute('x2', x2);
+            edgeDrawing.line.setAttribute('y2', y2);
+        }
+
+        function finishEdgeDrawing(targetId) {
+            if (!edgeDrawing) return;
+            const fromId = edgeDrawing.from;
+            cleanupEdgeDrawing();
+            if (fromId !== targetId) {
+                addEdge(fromId, targetId);
+            }
+        }
+
+        function cancelEdgeDrawing(event) {
+            if (event && event.target && event.target.classList && event.target.classList.contains('node')) {
+                return;
+            }
+            cleanupEdgeDrawing();
+            updateStatus();
+        }
+
+        function cleanupEdgeDrawing() {
+            if (edgeDrawing) {
+                if (edgeDrawing.line && edgeLayer.contains(edgeDrawing.line)) {
+                    edgeLayer.removeChild(edgeDrawing.line);
+                }
+                document.removeEventListener('mousemove', handleEdgeDrawingMove);
+                document.removeEventListener('mouseup', cancelEdgeDrawing);
+            }
+            edgeDrawing = null;
+        }
+
+        // Load graph from JSON
+        function loadGraph() {
+            try {
+                const graphText = document.getElementById('graphInput').value;
+                const heuristicText = document.getElementById('heuristicInput').value;
+
+                if (graphText) {
+                    const loadedGraph = JSON.parse(graphText);
+                    clearGraph();
+
+                    // Calculate layout
+                    const nodeIds = Object.keys(loadedGraph);
+                    const cols = Math.ceil(Math.sqrt(nodeIds.length));
+                    const startX = 150;
+                    const startY = 150;
+                    const spacing = 200;
+
+                    nodeIds.forEach((id, i) => {
+                        const row = Math.floor(i / cols);
+                        const col = i % cols;
+                        addNode(startX + col * spacing, startY + row * spacing, id);
+                    });
+
+                    // Add edges
+                    nodeIds.forEach(from => {
+                        Object.keys(loadedGraph[from] || {}).forEach(to => {
+                            const cost = loadedGraph[from][to];
+                            addEdge(from, to, cost, true);
+                        });
+                    });
+
+                    graph = loadedGraph;
+                }
+
+                if (heuristicText) {
+                    heuristics = JSON.parse(heuristicText);
+                }
+
+                updateStatus('Graph loaded successfully!');
+                setExplanation('Graph loaded successfully. You can reposition nodes or start a search.');
+            } catch (e) {
+                alert('Error loading graph: ' + e.message);
+            }
+        }
+
+        // Clear graph
+        function clearGraph() {
+            cleanupEdgeDrawing();
+            edgeLayer.innerHTML = '';
+            labelLayer.innerHTML = '';
+            nodeLayer.innerHTML = '';
+            graph = {};
+            nodes = {};
+            edges = [];
+            heuristics = {};
+            nodeCounter = 0;
+            startNode = null;
+            goalNode = null;
+            resetVisualization();
+            updateStatus('Graph cleared');
+            setExplanation('Graph cleared. Build or load a new graph to continue.');
+        }
+
+        // Update status
+        function updateStatus(msg = null) {
+            if (msg) {
+                document.getElementById('status').textContent = msg;
+                return;
+            }
+
+            const mode = modeSelect.value;
+            let modeText = '';
+            if (mode === 'add-node') modeText = 'Click on canvas to add nodes';
+            else if (mode === 'add-edge') modeText = edgeDrawing ? `Drawing edge from ${edgeDrawing.from}... release on target node` : 'Click and drag from one node to another to draw an edge';
+            else if (mode === 'move') modeText = 'Drag nodes to move them';
+            else if (mode === 'set-heuristic') modeText = 'Click on a node to select it, then enter heuristic value';
+
+            document.getElementById('status').textContent = modeText || 'Ready to visualize';
+        }
+
+        // Set heuristic for a node
+        function setHeuristicForNode() {
+            const nodeId = document.getElementById('selectedNode').value.trim();
+            const heuristicValue = document.getElementById('heuristicValueInput').value.trim();
+
+            if (!nodeId) {
+                alert('Please select a node first by clicking on it!');
+                return;
+            }
+
+            if (!nodes[nodeId]) {
+                alert('Selected node does not exist!');
+                return;
+            }
+
+            if (heuristicValue === '') {
+                delete heuristics[nodeId];
+                setExplanation([`Heuristic removed for node ${nodeId}.`], true);
+            } else {
+                const value = parseFloat(heuristicValue);
+                if (isNaN(value) || value < 0) {
+                    alert('Please enter a valid non-negative number!');
+                    return;
+                }
+                heuristics[nodeId] = value;
+                setExplanation([`Heuristic value ${value} set for node ${nodeId}.`], true);
+            }
+
+            document.getElementById('heuristicValueInput').value = '';
+            updateStatus(`Heuristic set for ${nodeId}`);
+        }
+
+        // View all heuristics
+        function viewAllHeuristics() {
+            const nodeIds = Object.keys(nodes);
+            if (nodeIds.length === 0) {
+                alert('No nodes in the graph!');
+                return;
+            }
+
+            const heuristicList = nodeIds.map(id => {
+                const h = heuristics[id];
+                return `${id}: ${h !== undefined ? h : 'not set'}`;
+            }).join('\n');
+
+            alert('Current Heuristics:\n\n' + heuristicList);
+        }
+
+        function setExplanation(text, isList = false) {
+            if (!explanationPanel) return;
+
+            if (!text) {
+                explanationPanel.innerHTML = '<div class="empty">Start a visualization to see step-by-step explanations here.</div>';
+                explanationPanel.classList.add('empty');
+                return;
+            }
+
+            explanationPanel.classList.remove('empty');
+
+            if (isList && Array.isArray(text)) {
+                let html = '<ul>';
+                text.forEach((item) => {
+                    if (typeof item === 'string') {
+                        html += `<li>${item}</li>`;
+                    }
+                });
+                html += '</ul>';
+                explanationPanel.innerHTML = html;
+            } else if (typeof text === 'string' && text.includes('•')) {
+                // Handle bullet points in text
+                const lines = text.split('•').filter(l => l.trim());
+                let html = '<ul>';
+                lines.forEach(line => {
+                    html += `<li>${line.trim()}</li>`;
+                });
+                html += '</ul>';
+                explanationPanel.innerHTML = html;
+            } else {
+                explanationPanel.innerHTML = `<div class="step-info">${text}</div>`;
+            }
+
+            explanationPanel.scrollTop = 0;
+        }
+
+        function formatExplanation(step, algorithm) {
+            const explanations = [];
+            
+            if (step.type === 'visit') {
+                explanations.push(`<strong>Visiting node: ${step.node}</strong>`);
+                
+                if (algorithm === 'bfs') {
+                    explanations.push('• BFS explores nodes level by level (breadth-first)');
+                    explanations.push(`• ${step.node} is the next unvisited node from the front of the queue`);
+                    explanations.push('• All neighbors will be added to the queue for later exploration');
+                } else if (algorithm === 'dfs') {
+                    explanations.push('• DFS explores as far as possible along each branch before backtracking');
+                    explanations.push(`• ${step.node} is popped from the top of the stack`);
+                    explanations.push('• Neighbors will be pushed onto the stack for immediate exploration');
+                } else if (algorithm === 'ucs') {
+                    explanations.push('• UCS selects the node with the lowest path cost from start');
+                    explanations.push(`• Cost to reach ${step.node}: ${step.cost}`);
+                    if (step.alternatives && step.alternatives.length > 0) {
+                        explanations.push('• Other options considered:');
+                        step.alternatives.forEach(alt => {
+                            explanations.push(`  - ${alt.node} (cost: ${alt.cost}) - higher cost, skipped`);
+                        });
+                    }
+                } else if (algorithm === 'greedy') {
+                    explanations.push('• Greedy selects the node with the lowest heuristic value');
+                    explanations.push(`• Heuristic h(${step.node}) = ${step.heuristic}`);
+                    if (step.alternatives && step.alternatives.length > 0) {
+                        explanations.push('• Other nodes in frontier:');
+                        step.alternatives.forEach(alt => {
+                            explanations.push(`  - ${alt.node} (h=${alt.heuristic}) - higher heuristic, not chosen`);
+                        });
+                    }
+                } else if (algorithm === 'astar') {
+                    explanations.push('• A* selects the node with the lowest f = g + h');
+                    explanations.push(`• f(${step.node}) = g(${step.cost}) + h(${step.heuristic}) = ${step.cost + step.heuristic}`);
+                    if (step.alternatives && step.alternatives.length > 0) {
+                        explanations.push('• Other nodes considered:');
+                        step.alternatives.forEach(alt => {
+                            const fAlt = alt.cost + alt.heuristic;
+                            explanations.push(`  - ${alt.node} (f=${fAlt}) - higher f-value, not chosen`);
+                        });
+                    }
+                }
+
+                if (step.node === goalNode) {
+                    explanations.push(`<strong>✓ Goal reached!</strong>`);
+                }
+                
+                if (step.explanation) {
+                    explanations.push(`• ${step.explanation}`);
+                }
+            } else if (step.type === 'frontier') {
+                explanations.push(`<strong>Adding to frontier: ${step.node}</strong>`);
+                
+                if (algorithm === 'bfs') {
+                    explanations.push(`• ${step.node} is a neighbor of the current node`);
+                    explanations.push('• It will be explored later in level-order');
+                } else if (algorithm === 'dfs') {
+                    explanations.push(`• ${step.node} is a neighbor of the current node`);
+                    explanations.push('• It will be explored next (stack LIFO behavior)');
+                } else if (algorithm === 'ucs') {
+                    explanations.push(`• ${step.node} added with cost: ${step.cost}`);
+                    explanations.push('• Priority queue will sort nodes by cost');
+                } else if (algorithm === 'greedy') {
+                    explanations.push(`• ${step.node} added with heuristic h=${step.heuristic}`);
+                    explanations.push('• Nodes will be sorted by heuristic value');
+                } else if (algorithm === 'astar') {
+                    const f = step.cost + step.heuristic;
+                    explanations.push(`• ${step.node} added with f = ${step.cost} + ${step.heuristic} = ${f}`);
+                    explanations.push('• Priority queue will sort by f-value');
+                }
+                
+                if (step.explanation) {
+                    explanations.push(`• ${step.explanation}`);
+                }
+            } else if (step.type === 'found') {
+                explanations.push(`<strong>✓ Path Found!</strong>`);
+                explanations.push(`• Path: ${step.path.join(' → ')}`);
+                if (step.cost !== undefined) {
+                    explanations.push(`• Total cost: ${step.cost}`);
+                }
+                if (step.explanation) {
+                    explanations.push(`• ${step.explanation}`);
+                }
+            } else if (step.type === 'not-found') {
+                explanations.push(`<strong>✗ Path Not Found</strong>`);
+                explanations.push('• All reachable nodes have been explored');
+                explanations.push('• The goal is not reachable from the start node');
+                if (step.explanation) {
+                    explanations.push(`• ${step.explanation}`);
+                }
+            }
+
+            return explanations;
+        }
+
+        // Algorithm implementations
+        async function BFS(graph, start, goal) {
+            const queue = [[start, [start]]];
+            const visited = new Set();
+            const steps = [
+                {type: 'frontier', node: start, explanation: `Initialize BFS queue with start node ${start}.`}
+            ];
+
+            while (queue.length > 0) {
+                const [current, path] = queue.shift();
+
+                if (visited.has(current)) continue;
+                visited.add(current);
+                const queueSnapshot = queue.map(item => item[0]).join(', ') || '∅';
+                steps.push({
+                    type: 'visit',
+                    node: current,
+                    path: [...path],
+                    explanation: `Dequeued ${current} because BFS explores nodes in FIFO order. Remaining queue: ${queueSnapshot}.`
+                });
+
+                if (current === goal) {
+                    steps.push({type: 'found', path, explanation: `Goal ${goal} reached via BFS.`});
+                    return steps;
+                }
+
+                const neighbors = Object.keys(graph[current] || {});
+                for (const neighbor of neighbors) {
+                    const alreadyQueued = queue.some(item => item[0] === neighbor);
+                    if (!visited.has(neighbor) && !alreadyQueued) {
+                        queue.push([neighbor, [...path, neighbor]]);
+                        const newQueue = queue.map(item => item[0]).join(', ');
+                        steps.push({
+                            type: 'frontier',
+                            node: neighbor,
+                            explanation: `Discovered ${neighbor} from ${current}; enqueued after existing nodes. Queue becomes: ${newQueue}.`
+                        });
+                    }
+                }
+            }
+
+            steps.push({type: 'not-found', explanation: 'BFS exhausted the queue without locating the goal.'});
+            return steps;
+        }
+
+        async function DFS(graph, start, goal) {
+            const stack = [[start, [start]]];
+            const visited = new Set();
+            const steps = [
+                {type: 'frontier', node: start, explanation: `Initialize DFS stack with ${start}.`}
+            ];
+
+            while (stack.length > 0) {
+                const [current, path] = stack.pop();
+
+                if (visited.has(current)) continue;
+                visited.add(current);
+                const stackSnapshot = stack.map(item => item[0]).reverse().join(', ') || '∅';
+                steps.push({
+                    type: 'visit',
+                    node: current,
+                    path: [...path],
+                    explanation: `Popped ${current} because DFS dives deep using LIFO order. Next on stack: ${stackSnapshot}.`
+                });
+
+                if (current === goal) {
+                    steps.push({type: 'found', path, explanation: `Goal ${goal} found by DFS.`});
+                    return steps;
+                }
+
+                const neighbors = Object.keys(graph[current] || {}).reverse();
+                for (const neighbor of neighbors) {
+                    const alreadyStacked = stack.some(item => item[0] === neighbor);
+                    if (!visited.has(neighbor) && !alreadyStacked) {
+                        stack.push([neighbor, [...path, neighbor]]);
+                        const newStack = stack.map(item => item[0]).join(', ');
+                        steps.push({
+                            type: 'frontier',
+                            node: neighbor,
+                            explanation: `Pushed ${neighbor} on the stack so it will be explored before siblings. Stack becomes: ${newStack}.`
+                        });
+                    }
+                }
+            }
+
+            steps.push({type: 'not-found', explanation: 'DFS backtracked through every branch without reaching the goal.'});
+            return steps;
+        }
+
+        async function UCS(graph, start, goal) {
+            const queue = [[0, start, [start]]];
+            const visited = new Set();
+            const steps = [
+                {type: 'frontier', node: start, cost: 0, explanation: `Initialize UCS priority queue with ${start} at cost 0.`}
+            ];
+
+            while (queue.length > 0) {
+                queue.sort((a, b) => a[0] - b[0]);
+                const [cost, current, path] = queue.shift();
+
+                if (visited.has(current)) continue;
+                visited.add(current);
+                steps.push({
+                    type: 'visit',
+                    node: current,
+                    path: [...path],
+                    cost,
+                    explanation: `Expanded ${current} because it has the lowest path cost so far (g=${cost}).`
+                });
+
+                if (current === goal) {
+                    steps.push({type: 'found', path, cost, explanation: `Reached ${goal} with optimal cost ${cost}.`});
+                    return steps;
+                }
+
+                const neighbors = Object.keys(graph[current] || {});
+                for (const neighbor of neighbors) {
+                    if (!visited.has(neighbor)) {
+                        const edgeCost = graph[current][neighbor];
+                        const newCost = cost + edgeCost;
+                        queue.push([newCost, neighbor, [...path, neighbor]]);
+                        steps.push({
+                            type: 'frontier',
+                            node: neighbor,
+                            cost: newCost,
+                            explanation: `Queued ${neighbor} via ${current} with cumulative cost ${newCost}.`
+                        });
+                    }
+                }
+            }
+
+            steps.push({type: 'not-found', explanation: 'UCS explored all reachable nodes without finding the goal.'});
+            return steps;
+        }
+
+        async function Greedy(graph, start, goal, heuristics) {
+            const queue = [[heuristics[start] || 0, start, [start]]];
+            const visited = new Set();
+            const steps = [
+                {type: 'frontier', node: start, heuristic: heuristics[start] || 0, explanation: `Initialize Greedy queue with ${start}, h=${heuristics[start] || 0}.`}
+            ];
+
+            while (queue.length > 0) {
+                queue.sort((a, b) => a[0] - b[0]);
+                const [h, current, path] = queue.shift();
+
+                if (visited.has(current)) continue;
+                visited.add(current);
+                steps.push({
+                    type: 'visit',
+                    node: current,
+                    path: [...path],
+                    heuristic: h,
+                    explanation: `Selected ${current} because it has the lowest heuristic estimate (h=${h}).`
+                });
+
+                if (current === goal) {
+                    steps.push({type: 'found', path, explanation: `Goal ${goal} reached via Greedy search.`});
+                    return steps;
+                }
+
+                const neighbors = Object.keys(graph[current] || {});
+                for (const neighbor of neighbors) {
+                    if (!visited.has(neighbor)) {
+                        const hValue = heuristics[neighbor] || 0;
+                        queue.push([hValue, neighbor, [...path, neighbor]]);
+                        steps.push({
+                            type: 'frontier',
+                            node: neighbor,
+                            heuristic: hValue,
+                            explanation: `Consider ${neighbor} next because its heuristic h=${hValue}.`
+                        });
+                    }
+                }
+            }
+
+            steps.push({type: 'not-found', explanation: 'Greedy search exhausted all candidates without finding the goal.'});
+            return steps;
+        }
+
+        async function AStar(graph, start, goal, heuristics) {
+            const queue = [[heuristics[start] || 0, 0, start, [start]]];
+            const visited = new Set();
+            const steps = [
+                {type: 'frontier', node: start, cost: 0, heuristic: heuristics[start] || 0, explanation: `Initialize A* with ${start} (g=0, h=${heuristics[start] || 0}, f=${heuristics[start] || 0}).`}
+            ];
+
+            while (queue.length > 0) {
+                queue.sort((a, b) => a[0] - b[0]);
+                const [f, g, current, path] = queue.shift();
+
+                if (visited.has(current)) continue;
+                visited.add(current);
+                steps.push({
+                    type: 'visit',
+                    node: current,
+                    path: [...path],
+                    cost: g,
+                    heuristic: f - g,
+                    explanation: `Expanded ${current} with the lowest f=g+h (${g}+${f - g}=${f}).`
+                });
+
+                if (current === goal) {
+                    steps.push({type: 'found', path, cost: g, explanation: `A* reached ${goal} with optimal cost ${g}.`});
+                    return steps;
+                }
+
+                const neighbors = Object.keys(graph[current] || {});
+                for (const neighbor of neighbors) {
+                    if (!visited.has(neighbor)) {
+                        const edgeCost = graph[current][neighbor];
+                        const newG = g + edgeCost;
+                        const h = heuristics[neighbor] || 0;
+                        const newF = newG + h;
+                        queue.push([newF, newG, neighbor, [...path, neighbor]]);
+                        steps.push({
+                            type: 'frontier',
+                            node: neighbor,
+                            cost: newG,
+                            heuristic: h,
+                            explanation: `Added ${neighbor} with g=${newG}, h=${h}, so f=${newF}.`
+                        });
+                    }
+                }
+            }
+
+            steps.push({type: 'not-found', explanation: 'A* priority queue emptied without finding the goal. Check heuristic consistency.'});
+            return steps;
+        }
+
+        // Visualization functions
+        function resetVisualization(preserveSteps = false) {
+            Object.values(nodes).forEach(node => {
+                node.element.className = 'node';
+            });
+            edges.forEach(edge => {
+                edge.line.classList.remove('path');
+                edge.line.classList.remove('edge-preview');
+                edge.label.textContent = edge.cost;
+            });
+
+            if (startNode) {
+                nodes[startNode].element.classList.add('start');
+            }
+            if (goalNode) {
+                nodes[goalNode].element.classList.add('goal');
+            }
+
+            if (!preserveSteps) {
+                animationSteps = [];
+            }
+            currentStep = 0;
+            isPaused = false;
+            isRunning = false;
+            document.getElementById('stepCounter').textContent = 'Step: 0';
+            updateStepHistory();
+            if (!preserveSteps) {
+                setExplanation(null);
+            }
+        }
+
+        async function startVisualization() {
+            const start = document.getElementById('startNode').value.trim();
+            const goal = document.getElementById('goalNode').value.trim();
+            const algorithm = document.getElementById('algorithm').value;
+
+            if (!start || !goal) {
+                alert('Please specify start and goal nodes!');
+                return;
+            }
+
+            if (!nodes[start] || !nodes[goal]) {
+                alert('Start or goal node does not exist in the graph!');
+                return;
+            }
+
+            if (Object.keys(graph).length === 0) {
+                alert('Graph is empty! Please add nodes and edges.');
+                return;
+            }
+
+            resetVisualization();
+            startNode = start;
+            goalNode = goal;
+            nodes[start].element.classList.add('start');
+            nodes[goal].element.classList.add('goal');
+
+            // Run algorithm
+            switch (algorithm) {
+                case 'bfs':
+                    animationSteps = await BFS(graph, start, goal);
+                    break;
+                case 'dfs':
+                    animationSteps = await DFS(graph, start, goal);
+                    break;
+                case 'ucs':
+                    animationSteps = await UCS(graph, start, goal);
+                    break;
+                case 'greedy':
+                    if (Object.keys(heuristics).length === 0) {
+                        alert('Greedy search requires heuristics! Please provide heuristics.');
+                        return;
+                    }
+                    animationSteps = await Greedy(graph, start, goal, heuristics);
+                    break;
+                case 'astar':
+                    if (Object.keys(heuristics).length === 0) {
+                        alert('A* search requires heuristics! Please provide heuristics.');
+                        return;
+                    }
+                    animationSteps = await AStar(graph, start, goal, heuristics);
+                    break;
+            }
+
+            const friendlyName = algorithmNames[algorithm] || algorithm.toUpperCase();
+            
+            // Save state for replay
+            savedVisualizationState = {
+                start, goal, algorithm, animationSteps: [...animationSteps],
+                graph: JSON.parse(JSON.stringify(graph)),
+                heuristics: {...heuristics},
+                nodes: Object.keys(nodes).reduce((acc, id) => {
+                    acc[id] = {x: nodes[id].x, y: nodes[id].y};
+                    return acc;
+                }, {})
+            };
+            
+            setExplanation([`Running ${friendlyName} from ${start} to ${goal}.`, 'The explanation panel shows step-by-step decisions.'], true);
+            updateStepHistory();
+            enableReplayControls();
+            
+            currentStep = 0;
+            isRunning = true;
+            isPaused = false;
+            await runAnimation();
+        }
+
+        async function runAnimation() {
+            const speed = parseInt(speedSlider.value);
+
+            for (let i = currentStep; i < animationSteps.length; i++) {
+                if (isPaused) break;
+
+                const step = animationSteps[i];
+                applyStep(step, i);
+                currentStep = i + 1;
+                updateStepHistory();
+
+                await new Promise(resolve => setTimeout(resolve, speed));
+            }
+
+            if (!isPaused) {
+                isRunning = false;
+            }
+        }
+
+        function applyStep(step, stepIndex, showExplanation = true) {
+            const algorithm = savedVisualizationState ? savedVisualizationState.algorithm : document.getElementById('algorithm').value;
+            
+            if (step.type === 'visit') {
+                const node = nodes[step.node];
+                if (node && step.node !== startNode && step.node !== goalNode) {
+                    node.element.classList.remove('frontier');
+                    node.element.classList.add('visited');
+                }
+                let statusText = `Visiting: ${step.node}`;
+                if (step.cost !== undefined) statusText += ` (Cost: ${step.cost})`;
+                if (step.heuristic !== undefined) statusText += ` (h: ${step.heuristic})`;
+                document.getElementById('status').textContent = statusText;
+                
+                if (showExplanation) {
+                    const explanations = formatExplanation(step, algorithm);
+                    setExplanation(explanations, true);
+                }
+            } else if (step.type === 'frontier') {
+                const node = nodes[step.node];
+                if (node && step.node !== startNode && step.node !== goalNode) {
+                    if (!node.element.classList.contains('visited')) {
+                        node.element.classList.add('frontier');
+                    }
+                }
+                let statusText = `Frontier: ${step.node}`;
+                if (step.cost !== undefined) statusText += ` (Cost: ${step.cost})`;
+                if (step.heuristic !== undefined) statusText += ` (h: ${step.heuristic})`;
+                document.getElementById('status').textContent = statusText;
+                
+                if (showExplanation) {
+                    const explanations = formatExplanation(step, algorithm);
+                    setExplanation(explanations, true);
+                }
+            } else if (step.type === 'found') {
+                // Highlight path
+                for (let j = 0; j < step.path.length - 1; j++) {
+                    const from = step.path[j];
+                    const to = step.path[j + 1];
+                    const edge = edges.find(e => e.from === from && e.to === to);
+                    if (edge) {
+                        edge.line.classList.add('path');
+                    }
+                    if (nodes[to] && to !== goalNode) {
+                        nodes[to].element.classList.add('path');
+                    }
+                }
+                if (nodes[step.path[0]] && step.path[0] !== startNode) {
+                    nodes[step.path[0]].element.classList.add('path');
+                }
+
+                const pathStr = step.path.join(' → ');
+                let statusText = `✓ Path found: ${pathStr}`;
+                if (step.cost !== undefined) statusText += ` (Total cost: ${step.cost})`;
+                document.getElementById('status').textContent = statusText;
+                
+                if (showExplanation) {
+                    const explanations = formatExplanation(step, algorithm);
+                    setExplanation(explanations, true);
+                }
+                isRunning = false;
+            } else if (step.type === 'not-found') {
+                const statusText = '✗ Path not found';
+                document.getElementById('status').textContent = statusText;
+                
+                if (showExplanation) {
+                    const explanations = formatExplanation(step, algorithm);
+                    setExplanation(explanations, true);
+                }
+                isRunning = false;
+            }
+        }
+
+        function pauseVisualization() {
+            isPaused = !isPaused;
+            if (!isPaused && isRunning) {
+                runAnimation();
+            }
+        }
+
+        async function stepVisualization() {
+            if (animationSteps.length === 0) {
+                alert('Please start visualization first!');
+                return;
+            }
+
+            isPaused = true;
+            if (currentStep < animationSteps.length) {
+                const step = animationSteps[currentStep];
+                applyStep(step, currentStep);
+                currentStep++;
+                updateStepHistory();
+            }
+        }
+
+        function updateStepHistory() {
+            if (stepHistory && animationSteps) {
+                stepHistory.textContent = `Step: ${currentStep} / ${animationSteps.length}`;
+            }
+            if (document.getElementById('stepCounter')) {
+                document.getElementById('stepCounter').textContent = `Step: ${currentStep}`;
+            }
+            
+            // Update button states
+            const prevBtn = document.getElementById('prevStepBtn');
+            const nextBtn = document.getElementById('nextStepBtn');
+            
+            if (prevBtn) prevBtn.disabled = !animationSteps || currentStep <= 0;
+            if (nextBtn) nextBtn.disabled = !animationSteps || currentStep >= animationSteps.length;
+        }
+
+        function enableReplayControls() {
+            const replayBtn = document.getElementById('replayBtn');
+            const prevBtn = document.getElementById('prevStepBtn');
+            const nextBtn = document.getElementById('nextStepBtn');
+            
+            if (replayBtn) replayBtn.disabled = false;
+            if (prevBtn) prevBtn.disabled = currentStep <= 0;
+            if (nextBtn) nextBtn.disabled = currentStep >= animationSteps.length;
+        }
+
+        function replayToStep(direction) {
+            if (!savedVisualizationState || !animationSteps || animationSteps.length === 0) {
+                alert('No visualization to replay! Please start a visualization first.');
+                return;
+            }
+
+            isPaused = true;
+            isRunning = false;
+
+            // Calculate target step
+            let targetStep;
+            if (direction === 0) {
+                targetStep = 0; // Reset
+            } else if (direction > 0) {
+                targetStep = currentStep + 1; // Next
+            } else {
+                targetStep = currentStep - 1; // Previous
+            }
+            
+            // Clamp target step
+            if (targetStep < 0) {
+                targetStep = 0;
+            }
+            if (targetStep > animationSteps.length) {
+                targetStep = animationSteps.length;
+            }
+
+            // Reset visualization but preserve steps
+            resetVisualization(true);
+            
+            // Restore start/goal nodes
+            if (savedVisualizationState) {
+                startNode = savedVisualizationState.start;
+                goalNode = savedVisualizationState.goal;
+                if (nodes[startNode]) {
+                    nodes[startNode].element.classList.add('start');
+                }
+                if (nodes[goalNode]) {
+                    nodes[goalNode].element.classList.add('goal');
+                }
+            }
+
+            // Replay from beginning up to (but not including) target step
+            // This applies all visual changes from steps 0 to targetStep-1
+            // Don't show explanations during the loop - we'll show it once at the end
+            for (let i = 0; i < targetStep; i++) {
+                applyStep(animationSteps[i], i, false);
+            }
+            
+            // Now show explanation and status for the step we're at
+            if (targetStep > 0) {
+                // Show the explanation for the last step we applied (targetStep - 1)
+                const stepToShow = animationSteps[targetStep - 1];
+                const algorithm = savedVisualizationState ? savedVisualizationState.algorithm : document.getElementById('algorithm').value;
+                const explanations = formatExplanation(stepToShow, algorithm);
+                setExplanation(explanations, true);
+                
+                // Also update status for the last step
+                if (stepToShow.type === 'visit') {
+                    let statusText = `Visiting: ${stepToShow.node}`;
+                    if (stepToShow.cost !== undefined) statusText += ` (Cost: ${stepToShow.cost})`;
+                    if (stepToShow.heuristic !== undefined) statusText += ` (h: ${stepToShow.heuristic})`;
+                    document.getElementById('status').textContent = statusText;
+                } else if (stepToShow.type === 'frontier') {
+                    let statusText = `Frontier: ${stepToShow.node}`;
+                    if (stepToShow.cost !== undefined) statusText += ` (Cost: ${stepToShow.cost})`;
+                    if (stepToShow.heuristic !== undefined) statusText += ` (h: ${stepToShow.heuristic})`;
+                    document.getElementById('status').textContent = statusText;
+                } else if (stepToShow.type === 'found') {
+                    const pathStr = stepToShow.path.join(' → ');
+                    let statusText = `✓ Path found: ${pathStr}`;
+                    if (stepToShow.cost !== undefined) statusText += ` (Total cost: ${stepToShow.cost})`;
+                    document.getElementById('status').textContent = statusText;
+                } else if (stepToShow.type === 'not-found') {
+                    document.getElementById('status').textContent = '✗ Path not found';
+                }
+            } else {
+                // At step 0, show initial message
+                const friendlyName = savedVisualizationState ? algorithmNames[savedVisualizationState.algorithm] : 'Algorithm';
+                const start = savedVisualizationState ? savedVisualizationState.start : startNode;
+                const goal = savedVisualizationState ? savedVisualizationState.goal : goalNode;
+                setExplanation([`Ready to run ${friendlyName} from ${start} to ${goal}.`, 'Use Previous/Next to navigate through steps.'], true);
+                document.getElementById('status').textContent = 'Ready to visualize';
+            }
+            
+            currentStep = targetStep;
+            updateStepHistory();
+        }
+
+        async function replayFromStart() {
+            if (!savedVisualizationState) {
+                alert('No visualization to replay!');
+                return;
+            }
+
+            resetVisualization();
+            
+            // Restore state
+            startNode = savedVisualizationState.start;
+            goalNode = savedVisualizationState.goal;
+            nodes[startNode].element.classList.add('start');
+            nodes[goalNode].element.classList.add('goal');
+            
+            currentStep = 0;
+            isRunning = true;
+            isPaused = false;
+            
+            await runAnimation();
+        }
+
+        // Initialize with example graph
+        window.addEventListener('load', () => {
+            const exampleGraph = {
+                "A": {"B": 5, "C": 3},
+                "B": {"D": 2, "E": 4},
+                "C": {"D": 4, "F": 6},
+                "D": {"G": 3},
+                "E": {"G": 1},
+                "F": {"G": 2},
+                "G": {}
+            };
+
+            const exampleHeuristics = {
+                "A": 10,
+                "B": 7,
+                "C": 8,
+                "D": 3,
+                "E": 2,
+                "F": 4,
+                "G": 0
+            };
+
+            document.getElementById('graphInput').value = JSON.stringify(exampleGraph, null, 2);
+            document.getElementById('heuristicInput').value = JSON.stringify(exampleHeuristics, null, 2);
+            document.getElementById('startNode').value = 'A';
+            document.getElementById('goalNode').value = 'G';
+        });
+    </script>
+</body>
+</html>
+
